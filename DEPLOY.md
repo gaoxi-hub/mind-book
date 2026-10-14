@@ -9,6 +9,7 @@
 ```bash
 cd /Users/xixi/Desktop/XiXi的一生/mind-book
 
+
 # 1) 安装依赖（仅首次）
 npm install
 
