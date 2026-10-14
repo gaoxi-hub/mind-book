@@ -14,9 +14,9 @@ export default defineConfig({
   description: '以现代人的眼睛重读《道德经》',
   lang: 'zh-CN',
 
-  // 部署到「用户/组织页」(xxx.github.io) 时保持 '/'；
-  // 部署到「项目页」(xxx.github.io/仓库名) 时改成 '/仓库名/'
-  // base: '/',
+  // 项目页部署：仓库名 mind-book → 必须带前缀 /mind-book/
+  // （若以后改成同名库 gaoxi-hub.github.io 再改回 '/'）
+  base: '/mind-book/',
 
   // 本地预览地址(http://localhost:5173)不是真链接，跳过死链检查
   ignoreDeadLinks: [/localhost/],
