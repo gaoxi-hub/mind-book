@@ -59,9 +59,17 @@ function buildBookGroup(key, name) {
   return { text: name, collapsed: false, items }
 }
 
-const sidebar = BOOKS
-  .map(b => buildBookGroup(b.key, b.name))
-  .filter(Boolean)
+// 侧边栏用「对象形式」按路径分段：
+// 只有在 /daodejing/ 下的页面才显示道德经目录，
+// /books、/about 这类独立页面不匹配任何键，就不显示侧边栏。
+// （若写成数组形式，会对所有页面生效——独立页面也会带出目录）
+const sidebar = {}
+for (const b of BOOKS) {
+  const group = buildBookGroup(b.key, b.name)
+  if (group) {
+    sidebar[`/${b.key}/`] = [group]
+  }
+}
 
 export default defineConfig({
   title: 'XiXi 慢读',
