@@ -13,9 +13,9 @@ const BASE = '/mind-book/'
 // 书目配置：以后要加新书，只要建对应文件夹并在这里加一行即可
 // 章节文件名建议：01.md / 02.md ...（数字命名，避免中文路径坑）
 const BOOKS = [
-  { key: 'daodejing', name: '道德经' }
-  // { key: 'yijing',    name: '易经' },
-  // { key: 'chuanxilu', name: '传习录' }
+  { key: 'daodejing', name: '道德经' },
+  { key: 'chuanxilu', name: '传习录（阳明心学）' }
+  // { key: 'yijing', name: '易经' }
 ]
 
 // 从章节正文首行标题里解析出「章节名 + 金句」
@@ -39,7 +39,8 @@ function buildBookGroup(key, name) {
 
   const items = fs
     .readdirSync(dir)
-    .filter(f => f.endsWith('.md'))
+    // 只认 01.md / 02.md 这类纯数字命名，避免 index.md 之类的页面混进目录
+    .filter(f => /^\d+\.md$/.test(f))
     .sort()
     .map(f => {
       const slug = f.replace(/\.md$/, '')
@@ -97,6 +98,7 @@ export default defineConfig({
     nav: [
       { text: '书目', link: '/books' },
       { text: '道德经', link: '/daodejing/01' },
+      { text: '传习录', link: '/chuanxilu/01' },
       { text: '关于', link: '/about' }
     ],
     sidebar,
