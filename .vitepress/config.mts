@@ -1,17 +1,71 @@
 import { defineConfig } from 'vitepress'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-// 道德经 81 章，自动生成侧边栏，避免手写 81 行
-const daodejing = Array.from({ length: 81 }, (_, i) => {
-  const n = i + 1
-  return {
-    text: `第${n}章`,
-    link: `/daodejing/${String(n).padStart(2, '0')}`
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const root = path.join(__dirname, '..')
+
+// 书目配置：以后要加新书，只要建对应文件夹并在这里加一行即可
+// 章节文件名建议：01.md / 02.md ...（数字命名，避免中文路径坑）
+const BOOKS = [
+  { key: 'daodejing', name: '道德经' }
+  // { key: 'yijing',    name: '易经' },
+  // { key: 'chuanxilu', name: '传习录' }
+]
+
+// 从章节正文首行标题里解析出「章节名 + 金句」
+// 标题格式：# 书名 · 第N章 · 金句
+function parseChapterTitle(firstLine) {
+  const raw = firstLine.trim().replace(/^#\s*/, '')
+  const parts = raw.split('·').map(s => s.trim()).filter(Boolean)
+  if (parts.length >= 3) {
+    return { label: parts[1], quote: parts.slice(2).join('·').trim() }
   }
-})
+  if (parts.length === 2) {
+    return { label: parts[1], quote: '' }
+  }
+  return { label: '', quote: '' }
+}
+
+// 生成一本书的侧边栏条目：第N章:本章金句
+function buildBookGroup(key, name) {
+  const dir = path.join(root, key)
+  if (!fs.existsSync(dir)) return null
+
+  const items = fs
+    .readdirSync(dir)
+    .filter(f => f.endsWith('.md'))
+    .sort()
+    .map(f => {
+      const slug = f.replace(/\.md$/, '')
+      let label = `第${Number(slug)}章`
+      let quote = ''
+      try {
+        const first = fs.readFileSync(path.join(dir, f), 'utf-8').split('\n')[0]
+        const p = parseChapterTitle(first)
+        if (p.label) label = p.label
+        quote = p.quote
+      } catch {
+        /* 读不到就用默认章节名 */
+      }
+      return {
+        text: quote ? `${label}:${quote}` : label,
+        link: `/${key}/${slug}`
+      }
+    })
+
+  if (items.length === 0) return null
+  return { text: name, collapsed: false, items }
+}
+
+const sidebar = BOOKS
+  .map(b => buildBookGroup(b.key, b.name))
+  .filter(Boolean)
 
 export default defineConfig({
-  title: '古书计划',
-  description: '以现代人的眼睛重读《道德经》',
+  title: 'XiXi 慢读',
+  description: '国学经典读书笔记：用大白话重读《道德经》《易经》《传习录》',
   lang: 'zh-CN',
 
   // 项目页部署：仓库名 mind-book → 必须带前缀 /mind-book/
@@ -23,16 +77,11 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
+      { text: '书目', link: '/books' },
       { text: '道德经', link: '/daodejing/01' },
       { text: '关于', link: '/about' }
     ],
-    sidebar: [
-      {
-        text: '道德经',
-        collapsed: false,
-        items: daodejing
-      }
-    ],
+    sidebar,
     search: true,
     lastUpdated: true,
     docFooter: { prev: false, next: true },

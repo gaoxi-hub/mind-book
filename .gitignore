@@ -3,6 +3,7 @@
 
 # ===== VitePress 构建产物 & 缓存（不提交，GitHub Actions 会重新生成） =====
 .vitepress/dist/
+.vitepress/build-check/
 .vitepress/cache/
 .vitepress/.temp/
 # VitePress 编译 config 时产生的临时文件（如 config.mts.timestamp-*.mjs）
@@ -17,6 +18,6 @@ Thumbs.db
 # ===== 以下「必须提交」，请勿加进忽略 =====
 # package.json、package-lock.json   —— deploy.yml 用 npm ci 依赖 package-lock.json
 # .vitepress/config.mts            —— 站点配置（侧边栏/导航）
-# .vitepress/theme/                —— 若有自定义主题样式
-# 所有 *.md（index/about/daodejing/*.md）—— 网站内容
+# .vitepress/theme/                —— 自定义主题样式（侧边栏金句换行等）
+# 所有 *.md（index/about/books/daodejing/*.md）—— 网站内容
 # .github/workflows/deploy.yml     —— 一键部署 GitHub Pages

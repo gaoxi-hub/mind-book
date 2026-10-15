@@ -1,0 +1,18 @@
+/* 侧边栏：章节 + 金句，允许换行并调整阅读舒适度 */
+.VPSidebar .VPSidebarItem .link {
+  align-items: flex-start;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.VPSidebar .VPSidebarItem .link .text {
+  line-height: 1.5;
+  font-size: 13px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* 当前所在章节高亮更明显一点 */
+.VPSidebar .VPSidebarItem.is-active > .item .link > .text {
+  font-weight: 600;
+}

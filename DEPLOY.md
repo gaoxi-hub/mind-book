@@ -35,7 +35,7 @@ npm run dev
 cd /Users/xixi/Desktop/XiXi的一生/mind-book
 git init
 git add .
-git commit -m "init: 古书计划 VitePress 站点"
+git commit -m "init: XiXi 慢读 VitePress 站点"
 git branch -M main
 git remote add origin https://github.com/你的用户名/mind-book.git
 git push -u origin main
