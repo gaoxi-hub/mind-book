@@ -1,18 +1,530 @@
-/* 侧边栏：章节 + 金句，允许换行并调整阅读舒适度 */
+/* ============================================================
+   XiXi 慢读 · 古风主题（宣纸 · 墨色 · 朱印）
+   ============================================================ */
+
+/* ---------- 1. 字体：正文宋体，标题/印章楷体 ---------- */
+:root {
+  --font-song: 'Songti SC', 'STSong', 'Noto Serif SC', 'Source Han Serif SC',
+    'Songti TC', 'SimSun', 'STZhongsong', serif;
+  --font-kai: 'Kaiti SC', 'STKaiti', 'KaiTi', 'BiauKai', '楷体', var(--font-song);
+  --font-mono: 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  --vp-font-family-base: var(--font-song);
+  --vp-font-family-mono: var(--font-mono);
+}
+
+/* ---------- 2. 宣纸纹理（SVG 噪声，叠在最上层，不挡交互） ---------- */
+:root {
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: var(--paper-noise);
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+/* ============================================================
+   3. 配色：日间 = 宣纸（浅米黄底 + 墨字 + 朱砂）
+   ============================================================ */
+:root {
+  --paper: #f6f1e6;      /* 宣纸底 */
+  --paper-2: #f1ead9;    /* 侧边栏 / 卡片 */
+  --paper-3: #fbf8f1;    /* 浮起层 */
+  --ink: #2b2823;        /* 浓墨 */
+  --ink-2: #554f46;      /* 淡墨 */
+  --ink-3: #857d70;      /* 灰墨 */
+  --seal: #9c2b2b;       /* 朱砂印 */
+  --seal-2: #b03a3a;
+  --seal-3: #7d2020;
+  --line: #ded5c2;       /* 纸边线 */
+
+  --vp-c-bg: var(--paper);
+  --vp-c-bg-alt: var(--paper-2);
+  --vp-c-bg-elv: var(--paper-3);
+  --vp-c-bg-soft: #ece4d3;
+
+  --vp-c-border: var(--line);
+  --vp-c-divider: #e6dcc9;
+  --vp-c-gutter: #e6dcc9;
+
+  --vp-c-text-1: var(--ink);
+  --vp-c-text-2: var(--ink-2);
+  --vp-c-text-3: var(--ink-3);
+  --vp-c-text-inverse-1: #f6f1e6;
+  --vp-c-text-inverse-2: #cfc7b6;
+
+  --vp-c-brand-1: var(--seal);
+  --vp-c-brand-2: var(--seal-2);
+  --vp-c-brand-3: var(--seal-3);
+  --vp-c-brand-soft: rgba(156, 43, 43, 0.12);
+
+  --vp-c-tip-1: #6b7a4a;
+  --vp-c-tip-2: #7d8d58;
+  --vp-c-tip-3: #55653a;
+  --vp-c-tip-soft: rgba(107, 122, 74, 0.14);
+
+  --vp-c-warning-1: #9a6a20;
+  --vp-c-warning-soft: rgba(154, 106, 32, 0.14);
+  --vp-c-danger-1: #9c2b2b;
+  --vp-c-danger-soft: rgba(156, 43, 43, 0.12);
+  --vp-c-success-1: #4a7a5c;
+  --vp-c-success-soft: rgba(74, 122, 92, 0.14);
+
+  /* 首页 hero：去掉默认紫色渐变，改墨色 */
+  --vp-home-hero-name-color: var(--ink);
+  --vp-home-hero-name-background: none;
+  --vp-home-hero-text-color: var(--ink);
+  --vp-home-hero-tagline-color: var(--ink-2);
+  --vp-home-hero-image-background-image: none;
+  --vp-home-hero-image-filter: none;
+
+  --vp-code-block-bg: #f1ead9;
+  --vp-code-bg: #ece4d3;
+  --vp-code-color: var(--ink-2);
+}
+
+/* ============================================================
+   4. 配色：夜间 = 墨夜（深墨底 + 淡黄字）
+   ============================================================ */
+.dark {
+  --paper: #1f1c18;
+  --paper-2: #262219;
+  --paper-3: #2c2820;
+  --ink: #e6ddc9;
+  --ink-2: #bdb3a0;
+  --ink-3: #8a8172;
+  --seal: #c85a4a;
+  --seal-2: #d4705f;
+  --seal-3: #a84436;
+  --line: #3d382e;
+
+  --vp-c-bg: var(--paper);
+  --vp-c-bg-alt: var(--paper-2);
+  --vp-c-bg-elv: var(--paper-3);
+  --vp-c-bg-soft: #312d24;
+
+  --vp-c-border: var(--line);
+  --vp-c-divider: #36322a;
+  --vp-c-gutter: #36322a;
+
+  --vp-c-text-1: var(--ink);
+  --vp-c-text-2: var(--ink-2);
+  --vp-c-text-3: var(--ink-3);
+  --vp-c-text-inverse-1: #1f1c18;
+
+  --vp-c-brand-1: var(--seal);
+  --vp-c-brand-2: var(--seal-2);
+  --vp-c-brand-3: var(--seal-3);
+  --vp-c-brand-soft: rgba(200, 90, 74, 0.16);
+
+  --vp-c-tip-1: #9aab72;
+  --vp-c-tip-2: #adbd88;
+  --vp-c-tip-soft: rgba(154, 171, 114, 0.16);
+
+  --vp-code-block-bg: #26221c;
+  --vp-code-bg: #312d24;
+  --vp-code-color: #cfc4ad;
+
+  --vp-home-hero-name-color: #ece2cc;
+}
+
+.dark body::after {
+  opacity: 0.035;
+  mix-blend-mode: screen;
+}
+
+/* ---------- 5. 顶部导航：宣纸底 + 底部墨线 ---------- */
+.VPNavBar:not(.has-sidebar) .content,
+.VPNavBar .content {
+  background-color: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(1.2) blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.VPNavBar .content-body {
+  border-bottom: none;
+}
+
+/* 导航当前项：朱砂 */
+.VPNavBarMenuLink.active .text,
+.VPNavBarMenuLink:hover .text {
+  color: var(--seal);
+}
+
+.VPNavBarMenuLink.active .text::after,
+.VPNavBarMenuLink:hover .text::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -8px;
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--seal);
+  opacity: 0.75;
+}
+
+.VPNavBarMenuLink .text {
+  position: relative;
+}
+
+/* ---------- 6. 侧边栏：章节 + 金句 ---------- */
+.VPSidebar {
+  background: transparent;
+  border-right: 1px solid var(--line);
+}
+
 .VPSidebar .VPSidebarItem .link {
+  position: relative;
   align-items: flex-start;
   padding-top: 5px;
   padding-bottom: 5px;
+  padding-left: 16px;
+  border-radius: 3px;
 }
 
 .VPSidebar .VPSidebarItem .link .text {
-  line-height: 1.5;
+  line-height: 1.55;
   font-size: 13px;
   white-space: normal;
   word-break: break-word;
 }
 
-/* 当前所在章节高亮更明显一点 */
+/* 当前章节：朱砂字 + 淡朱底 + 左侧墨条，文字与竖条留出间距 */
 .VPSidebar .VPSidebarItem.is-active > .item .link > .text {
   font-weight: 600;
+  color: var(--seal);
+}
+
+.VPSidebar .VPSidebarItem.is-active > .item .link {
+  background: color-mix(in srgb, var(--seal) 8%, transparent);
+}
+
+.VPSidebar .VPSidebarItem.is-active > .item .link::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 14px;
+  background: var(--seal);
+  border-radius: 1px;
+}
+
+/* 书名分组标题保持墨色，不跟着变红；悬停再显朱砂 */
+.VPSidebar .group .VPSidebarItem.level-0 > .item .link > .text,
+.VPSidebar .group .title-text {
+  font-family: var(--font-kai);
+  letter-spacing: 0.06em;
+  color: var(--ink) !important;
+}
+
+.VPSidebar .group .VPSidebarItem.level-0 > .item .link:hover > .text,
+.VPSidebar .group .title-text:hover {
+  color: var(--seal) !important;
+}
+
+/* ---------- 7. 正文排版 ---------- */
+.vp-doc {
+  font-size: 16px;
+  line-height: 1.95;
+  letter-spacing: 0.01em;
+}
+
+.vp-doc p {
+  margin: 1.1em 0;
+}
+
+/* 一级标题（章节名）：楷体 + 左下墨线 */
+.vp-doc h1 {
+  font-family: var(--font-kai);
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding-bottom: 0.5rem;
+  position: relative;
+}
+
+.vp-doc h1::after {
+  content: '';
+  display: block;
+  margin-top: 0.6rem;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    var(--ink) 0%,
+    var(--ink) 30%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  opacity: 0.35;
+}
+
+.dark .vp-doc h1::after {
+  background: linear-gradient(
+    to right,
+    var(--ink) 0%,
+    var(--ink) 30%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* 二级标题：朱砂小方印 */
+.vp-doc h2 {
+  font-family: var(--font-kai);
+  font-size: 1.45rem;
+  letter-spacing: 0.05em;
+  margin-top: 2.2rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.vp-doc h2::before {
+  content: '';
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-right: 0.55em;
+  vertical-align: middle;
+  background: var(--seal);
+  opacity: 0.85;
+  transform: rotate(45deg);
+  border-radius: 1px;
+}
+
+.vp-doc h3 {
+  font-family: var(--font-kai);
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+
+/* 链接：朱砂 + 淡下划线 */
+.vp-doc a {
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--seal) 45%, transparent);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.vp-doc a:hover {
+  color: var(--seal);
+  border-bottom-color: var(--seal);
+}
+
+/* 引用：宣纸压痕 + 左侧墨线 */
+.vp-doc blockquote {
+  background: color-mix(in srgb, var(--paper-2) 70%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--ink) 45%, transparent);
+  border-radius: 0 4px 4px 0;
+  padding: 0.6em 1em;
+  color: var(--ink-2);
+  font-size: 0.96em;
+}
+
+/* 列表：朱砂小点 */
+.vp-doc ul,
+.vp-doc ol {
+  padding-left: 1.4em;
+}
+
+.vp-doc li + li {
+  margin-top: 0.35em;
+}
+
+.vp-doc ul > li::marker {
+  color: var(--seal);
+}
+
+/* 表格：纸格风 */
+.vp-doc table {
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.vp-doc th {
+  background: color-mix(in srgb, var(--paper-2) 75%, transparent);
+  font-family: var(--font-kai);
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid color-mix(in srgb, var(--seal) 35%, var(--line));
+}
+
+.vp-doc td,
+.vp-doc th {
+  border: 1px solid var(--line);
+  padding: 0.55em 0.9em;
+}
+
+.vp-doc tr:nth-child(2n) td {
+  background: color-mix(in srgb, var(--paper-2) 40%, transparent);
+}
+
+/* 分隔线：飞白笔触 */
+.vp-doc hr {
+  border: none;
+  height: 1px;
+  margin: 2.4em 0;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    var(--line) 20%,
+    var(--line) 80%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* 行内代码 / 代码块：纸笺 */
+.vp-doc :not(pre) > code {
+  background: var(--vp-code-bg);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+.vp-doc div[class*='language-'] code {
+  font-family: var(--font-mono);
+}
+
+/* 选中文字：朱砂淡底 */
+::selection {
+  background: color-mix(in srgb, var(--seal) 22%, transparent);
+  color: var(--ink);
+}
+
+/* ---------- 8. 首页：朱印 + 纸卡 ---------- */
+.VPHero .name {
+  font-family: var(--font-kai);
+  letter-spacing: 0.08em;
+  position: relative;
+}
+
+/* 名字后的一枚朱红方印 */
+.VPHero .name::after {
+  content: '讀';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin-left: 0.45em;
+  font-size: 0.42em;
+  font-family: var(--font-kai);
+  color: #fbf6ec;
+  background: var(--seal);
+  border-radius: 3px;
+  transform: translateY(-0.55em) rotate(-3deg);
+  opacity: 0.92;
+  letter-spacing: 0;
+}
+
+.VPHero .text {
+  font-family: var(--font-kai);
+  letter-spacing: 0.12em;
+}
+
+.VPHero .tagline {
+  letter-spacing: 0.02em;
+}
+
+/* 首页按钮：朱砂描边，去掉默认蓝 */
+.VPHero .actions .VPButton.brand {
+  background: var(--seal);
+  border-color: var(--seal);
+  color: #fbf6ec;
+  letter-spacing: 0.05em;
+}
+
+.VPHero .actions .VPButton.brand:hover {
+  background: var(--seal-3);
+  border-color: var(--seal-3);
+}
+
+.VPHero .actions .VPButton.alt {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+
+.VPHero .actions .VPButton.alt:hover {
+  border-color: var(--seal);
+  color: var(--seal);
+}
+
+/* 特性卡片：纸片 + 细边 + 悬停微浮 */
+.VPFeature {
+  background: color-mix(in srgb, var(--paper-3) 85%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s;
+}
+
+.VPFeature:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--seal) 35%, var(--line));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.VPFeature .title {
+  font-family: var(--font-kai);
+  letter-spacing: 0.05em;
+}
+
+/* ---------- 9. 文章底部「上一页/下一页」 ---------- */
+.VPDocFooter .pager-link .title {
+  font-family: var(--font-kai);
+}
+
+.pager-link .desc,
+.pager-link .title {
+  color: var(--ink);
+}
+
+/* ---------- 10. 页脚 + 回到顶部 ---------- */
+.VPFooter {
+  border-top: 1px solid var(--line);
+  background: transparent;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- 11. 滚动条：细窄朱砂 ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-3) 45%, transparent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--seal) 55%, transparent);
+}
+
+/* ---------- 12. 搜索框：宣纸风 ---------- */
+.DocSearch-Button,
+.VPLocalSearchBox {
+  border: 1px solid var(--line) !important;
+  border-radius: 4px !important;
+  background: color-mix(in srgb, var(--paper-3) 80%, transparent) !important;
+}
+
+/* ---------- 13. 移动端也保留纸张感 ---------- */
+@media (max-width: 960px) {
+  .VPSidebar {
+    background: var(--paper);
+  }
 }

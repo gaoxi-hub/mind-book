@@ -6,6 +6,10 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
 
+// 站点基础路径（项目页部署必须带仓库名前缀）。
+// head 里引用的静态资源不会自动补 base，所以需要这个常量手动拼接。
+const BASE = '/mind-book/'
+
 // 书目配置：以后要加新书，只要建对应文件夹并在这里加一行即可
 // 章节文件名建议：01.md / 02.md ...（数字命名，避免中文路径坑）
 const BOOKS = [
@@ -78,10 +82,16 @@ export default defineConfig({
 
   // 项目页部署：仓库名 mind-book → 必须带前缀 /mind-book/
   // （若以后改成同名库 gaoxi-hub.github.io 再改回 '/'）
-  base: '/mind-book/',
+  base: BASE,
 
   // 本地预览地址(http://localhost:5173)不是真链接，跳过死链检查
   ignoreDeadLinks: [/localhost/],
+
+  // 站点图标：朱印「讀」（路径需手动拼 BASE）
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${BASE}favicon.svg` }],
+    ['meta', { name: 'theme-color', content: '#f6f1e6' }]
+  ],
 
   themeConfig: {
     nav: [
@@ -92,10 +102,16 @@ export default defineConfig({
     sidebar,
     search: true,
     lastUpdated: true,
+    lastUpdatedText: '最后修订于',
     docFooter: { prev: false, next: true },
     returnToTopLabel: '回到顶部',
     sidebarMenuLabel: '目录',
     darkModeSwitchLabel: '主题',
-    outlineTitle: '本页目录'
+    outlineTitle: '本页目录',
+
+    footer: {
+      message: '慢慢读古书，慢慢过日子',
+      copyright: 'Copyright © 2026 XiXi · 本站内容为个人读书笔记'
+    }
   }
 })
