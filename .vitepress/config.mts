@@ -105,7 +105,7 @@ export default defineConfig({
     search: true,
     lastUpdated: true,
     lastUpdatedText: '最后修订于',
-    docFooter: { prev: false, next: true },
+    docFooter: { prev: false, next: '下一篇' },
     returnToTopLabel: '回到顶部',
     sidebarMenuLabel: '目录',
     darkModeSwitchLabel: '主题',
