@@ -184,27 +184,28 @@ body::after {
 .VPSidebar .VPSidebarItem .link {
   position: relative;
   align-items: flex-start;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   padding-left: 16px;
   border-radius: 3px;
 }
 
 .VPSidebar .VPSidebarItem .link .text {
-  line-height: 1.55;
-  font-size: 13px;
+  line-height: 1.6;
+  font-size: 14px;
+  color: var(--ink);
   white-space: normal;
   word-break: break-word;
 }
 
-/* 当前章节：朱砂字 + 淡朱底 + 左侧墨条，文字与竖条留出间距 */
+/* 当前章节：加粗 + 朱砂字 + 淡朱底 + 左侧墨条，文字与竖条留出间距 */
 .VPSidebar .VPSidebarItem.is-active > .item .link > .text {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--seal);
 }
 
 .VPSidebar .VPSidebarItem.is-active > .item .link {
-  background: color-mix(in srgb, var(--seal) 8%, transparent);
+  background: color-mix(in srgb, var(--seal) 12%, transparent);
 }
 
 .VPSidebar .VPSidebarItem.is-active > .item .link::before {
