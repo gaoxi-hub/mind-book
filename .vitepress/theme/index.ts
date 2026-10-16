@@ -1,4 +1,3 @@
-import DefaultTheme from 'vitepress/theme'
-import './custom.css'
+import './highlight'
 
-export default DefaultTheme
+export { default } from './highlight'
