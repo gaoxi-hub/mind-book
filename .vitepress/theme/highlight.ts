@@ -1,19 +1,55 @@
-// 纯前端读者划线：选区高亮 + localStorage 持久化（刷新仍在）
-// 用法：在正文里按住选中文字即高亮；点击已高亮处可清除。
+// 纯前端读者划线（CSS Custom Highlight API 实现）
+// 关键点：用 Range 上色，完全不改动 DOM 结构，所以不会把文档搞乱。
+// 选中文字即高亮，存 localStorage（按页面路径区分），刷新/切页仍在；点击已高亮处清除这一条。
 import DefaultTheme from 'vitepress/theme'
 import { useRoute } from 'vitepress'
-import { onMounted, watch, nextTick } from 'vue'
+import { onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import './custom.css'
-import './highlight.css'
 
+const HL_NAME = 'mindbook-hl'
 type Mark = { s: number; e: number; t: string }
+
+// 样式在运行时注入，避免打包器把 ::highlight() 当未知伪元素丢弃
+const HL_CSS = `
+::highlight(mindbook-hl) {
+  background-color: rgba(156, 43, 43, 0.16);
+  text-decoration: underline;
+  text-decoration-color: rgba(156, 43, 43, 0.55);
+  text-decoration-thickness: 2px;
+}
+.hl-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: rgba(43, 40, 35, 0.92);
+  color: #f6f1e6;
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', serif;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  padding: 7px 14px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.hl-toast.show { opacity: 1; }
+`
+
+function injectStyle() {
+  if (document.getElementById('mindbook-hl-style')) return
+  const s = document.createElement('style')
+  s.id = 'mindbook-hl-style'
+  s.textContent = HL_CSS
+  document.head.appendChild(s)
+}
 
 function container(): HTMLElement | null {
   return document.querySelector<HTMLElement>('.vp-doc')
 }
 
 function key(): string {
-  // 带 base 前缀的路径，避免不同页冲突
   return 'mindbook-hl:' + location.pathname
 }
 
@@ -29,7 +65,7 @@ function save(list: Mark[]) {
   localStorage.setItem(key(), JSON.stringify(list))
 }
 
-// 计算某个 (node, offset) 在 container 纯文本中的整体偏移
+// 计算 (node, offset) 在 container 纯文本中的整体偏移
 function offsetOf(root: HTMLElement, node: Node, off: number): number {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null)
   let total = 0
@@ -54,39 +90,30 @@ function pointAt(root: HTMLElement, target: number): { node: Node; offset: numbe
   return null
 }
 
-// 去掉所有已渲染的高亮（还原文本），保留文字
-function unwrapAll(root: HTMLElement) {
-  root.querySelectorAll('mark.hl').forEach((m) => {
-    const parent = m.parentNode
-    if (!parent) return
-    while (m.firstChild) parent.insertBefore(m.firstChild, m)
-    parent.removeChild(m)
-    parent.normalize()
-  })
+function makeRange(root: HTMLElement, s: number, e: number): Range | null {
+  const a = pointAt(root, s)
+  const b = pointAt(root, e)
+  if (!a || !b) return null
+  const r = document.createRange()
+  r.setStart(a.node, a.offset)
+  r.setEnd(b.node, b.offset)
+  return r
 }
 
-// 按保存的偏移列表重新套上高亮
-function applyMarks(root: HTMLElement, list: Mark[]) {
-  unwrapAll(root)
-  list.forEach((m, i) => {
-    const a = pointAt(root, m.s)
-    const b = pointAt(root, m.e)
-    if (!a || !b) return
-    try {
-      const range = document.createRange()
-      range.setStart(a.node, a.offset)
-      range.setEnd(b.node, b.offset)
-      const frag = range.extractContents()
-      const mark = document.createElement('mark')
-      mark.className = 'hl'
-      mark.dataset.i = String(i)
-      mark.appendChild(frag)
-      range.insertNode(mark)
-      root.normalize()
-    } catch {
-      /* 跨结构选区套不上就跳过这一条 */
-    }
-  })
+function supported(): boolean {
+  return typeof CSS !== 'undefined' && 'highlights' in CSS && typeof (window as any).Highlight === 'function'
+}
+
+function applyAll() {
+  if (!supported()) return
+  const root = container()
+  if (!root) return
+  const fresh = new (window as any).Highlight()
+  for (const m of load()) {
+    const r = makeRange(root, m.s, m.e)
+    if (r) fresh.add(r)
+  }
+  CSS.highlights.set(HL_NAME, fresh)
 }
 
 function toast(msg: string) {
@@ -102,50 +129,54 @@ function toast(msg: string) {
   ;(el as any)._t = window.setTimeout(() => el!.classList.remove('show'), 1400)
 }
 
-function applyAll() {
-  const root = container()
-  if (!root) return
-  applyMarks(root, load())
-}
-
-function onMouseUp() {
+function addHighlight() {
+  if (!supported()) {
+    toast('当前浏览器不支持划线')
+    return
+  }
   const root = container()
   if (!root) return
   const sel = window.getSelection()
   if (!sel || sel.isCollapsed || sel.rangeCount === 0) return
 
   const range = sel.getRangeAt(0)
-  // 选区必须整体落在正文中
   if (!root.contains(range.startContainer) || !root.contains(range.endContainer)) return
-
-  // 点选已高亮处 → 只清除这一条
-  let node: Node | null = range.startContainer
-  while (node && node !== root) {
-    if (node instanceof HTMLElement && node.classList.contains('hl')) {
-      const idx = Number(node.dataset.i)
-      const list = load()
-      if (!Number.isNaN(idx) && list[idx]) list.splice(idx, 1)
-      save(list)
-      unwrapAll(root)
-      applyMarks(root, list)
-      sel.removeAllRanges()
-      toast('已清除划线')
-      return
-    }
-    node = node.parentNode
-  }
 
   const s = offsetOf(root, range.startContainer, range.startOffset)
   const e = offsetOf(root, range.endContainer, range.endOffset)
   if (e <= s) return
-  const text = sel.toString()
-  const list = load().filter((m) => !(m.s < e && m.e > s)) // 去重覆盖
-  list.push({ s, e, t: text })
+
+  const list = load().filter((m) => !(m.s < e && m.e > s)) // 去掉被覆盖的旧条目
+  list.push({ s, e, t: sel.toString() })
   list.sort((a, b) => a.s - b.s)
   save(list)
-  applyMarks(root, list)
+  applyAll()
   sel.removeAllRanges()
   toast('已划线')
+}
+
+// 点击落在某个高亮区间内 → 清除那一条
+function onClick(ev: MouseEvent) {
+  const root = container()
+  if (!root) return
+  let pos: { node: Node; offset: number } | null = null
+  const cp = (document as any).caretPositionFromPoint?.(ev.clientX, ev.clientY)
+  if (cp) pos = { node: cp.offsetNode, offset: cp.offset }
+  else {
+    const cr = (document as any).caretRangeFromPoint?.(ev.clientX, ev.clientY)
+    if (cr) pos = { node: cr.startContainer, offset: cr.startOffset }
+  }
+  if (!pos) return
+
+  const off = offsetOf(root, pos.node, pos.offset)
+  const list = load()
+  const idx = list.findIndex((m) => off > m.s && off < m.e)
+  if (idx >= 0) {
+    list.splice(idx, 1)
+    save(list)
+    applyAll()
+    toast('已清除划线')
+  }
 }
 
 export default {
@@ -153,12 +184,19 @@ export default {
   setup() {
     const route = useRoute()
     onMounted(() => {
-      document.addEventListener('mouseup', onMouseUp)
+      injectStyle()
+      document.addEventListener('mouseup', addHighlight)
+      document.addEventListener('click', onClick)
       nextTick(applyAll)
+    })
+    onBeforeUnmount(() => {
+      document.removeEventListener('mouseup', addHighlight)
+      document.removeEventListener('click', onClick)
     })
     watch(
       () => route.path,
-      () => nextTick(applyAll)
+      () => nextTick(() => setTimeout(applyAll, 30)),
+      { flush: 'post' }
     )
   }
 }
