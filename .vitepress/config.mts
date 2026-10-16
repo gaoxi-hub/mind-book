@@ -96,7 +96,7 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
-      { text: '书目', link: '/books' },
+      { text: '书架', link: '/books' },
       { text: '道德经', link: '/daodejing/01' },
       { text: '传习录', link: '/chuanxilu/01' },
       { text: '关于', link: '/about' }
